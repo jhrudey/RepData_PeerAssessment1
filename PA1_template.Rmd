@@ -1,25 +1,142 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+Code for Course 5 Assignment 1
+=====================================
 
+Set the working directory.
 
-## Loading and preprocessing the data
+```{r}
+setwd("/users/jhrudey/Desktop/Courses/Datasciencecoursera")
+if (!file.exists("RepData_PeerAssessment1")) {
+  dir.create("RepData_PeerAssessment1")
+}
+```
 
+The remote repository was cloned with git to the local repository. Now unzip the files.
 
+```{r}
+unzip("./activity.zip", exdir="./")
+list.files("./")
+```
 
-## What is mean total number of steps taken per day?
+Read in the csv. Format the date variable.
 
+```{r}
+data <- read.csv("activity.csv", header = TRUE, sep=",", na.strings = "NA")
+```
 
+Review the dataset's properties.
 
-## What is the average daily activity pattern?
+```{r}
+head(data)
+tail(data)
+str(data)
+```
 
+Format the date variable.
 
+```{r}
+data$date <- as.Date(data$date)
+str(data)
+```
 
-## Imputing missing values
+Aggregate the data to determine the total number of steps taken per day.
 
+```{r}
+stepsdaytotal<- aggregate(steps~date, data, sum, na.rm=TRUE)
+```
 
+Create the histogram of the total number of steps per day and the mean and median of this total.
 
-## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+with(stepsdaytotal, hist(steps))
+
+mean(stepsdaytotal$steps, na.rm=TRUE)
+
+median(stepsdaytotal$steps, na.rm=TRUE)
+```
+
+Aggregate the data to determine the mean number of steps per interval averaged across all days.
+
+```{r}
+stepsdaymean<- aggregate(steps~interval, data, mean, na.rm=TRUE)
+```
+
+Plot the average number of steps over all days per interval with a line graph.
+
+```{r}
+with(stepsdaymean, plot(interval, steps, type="l"))
+```
+
+Determine the interval where the maximum, on average, number of steps were taken by sorting the aggregated dataframe descending by number of steps.
+
+```{r}
+stepsdaymean<- stepsdaymean[with(stepsdaymean, order(steps, decreasing = TRUE)),]
+head(stepsdaymean)
+```
+
+Interval 835 has the most steps on overage over all days.
+
+Impute the mean steps on average per interval over all days into the the missing values of steps. To do this first merge the variable with the average number of steps per interval into the main dataset.
+
+```{r}
+data2 <- merge(data, stepsdaymean, by="interval")
+str(data2)
+data2$steps.x <- as.numeric(data2$steps.x)
+str(data2)
+```
+
+Then replace the NA values with the value of the mean steps per interval
+
+```{r}
+data2$steps.x[is.na(data2$steps.x)]<-data2$steps.y[is.na(data2$steps.x)]
+library(plyr)
+data2 <- rename(data2, c("steps.x"="steps"))
+```
+
+Recreate the histogram of the total steps per day and mean and median of the steps per day, but with the imputed dataset.
+
+```{r}
+stepsdaytotal2<- aggregate(steps~date, data2, sum, na.rm=TRUE)
+
+with(stepsdaytotal2, hist(steps))
+
+mean(stepsdaytotal2$steps, na.rm=TRUE)
+
+median(stepsdaytotal2$steps, na.rm=TRUE)
+```
+
+The mean didn't change in the imputed dataset, but the median was affected by imputation
+
+Create a variable to determine which steps were taken on weekends and which on weekdays.
+
+```{r}
+data2$Weekday <- as.factor(weekdays(data2$date))
+
+data2$Week <- as.factor(ifelse(data2$Weekday == "Saturday"|data2$Weekday=="Sunday"
+                     ,"Weekend","Weekday"))
+
+dataWeekday <- subset(data2, Week == "Weekday")
+dataWeekend <- subset(data2, Week == "Weekend")
+```
+
+Make subsets of the data for weekdays and for weekends.
+
+```{r}
+dataWeekday <- subset(data2, Week == "Weekday")
+dataWeekend <- subset(data2, Week == "Weekend")
+```
+
+Determine the mean steps per interval in the weekday dataset and the weekend dataset
+
+```{r}
+stepsdaymeanweekday<- aggregate(steps~interval, dataWeekday, mean, na.rm=TRUE)
+stepsdaymeanweekend<- aggregate(steps~interval, dataWeekend, mean, na.rm=TRUE)
+```
+
+Plot the mean steps per interval on weekdays and on weekends
+
+```{r}
+par(mfrow = c(2,1))
+par(mar=c(5,5,2,1))
+with(stepsdaymeanweekday, plot(interval, steps, type="l", main = "Steps on Weekdays"))
+with(stepsdaymeanweekend, plot(interval, steps, type="l", main = "Steps on Weekends"))
+```
