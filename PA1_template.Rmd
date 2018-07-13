@@ -44,15 +44,23 @@ Aggregate the data to determine the total number of steps taken per day.
 stepsdaytotal<- aggregate(steps~date, data, sum, na.rm=TRUE)
 ```
 
-Create the histogram of the total number of steps per day and the mean and median of this total.
+Create the histogram of the total number of steps per day.
 
 ```{r}
 with(stepsdaytotal, hist(steps))
+dev.copy(png, file = "./instructions_fig/plot1.png", width = 480, height = 480, units = "px")
+dev.off()
+```
 
+Calculate the mean and median of the total number of steps per day.
+
+```{r}
 mean(stepsdaytotal$steps, na.rm=TRUE)
 
 median(stepsdaytotal$steps, na.rm=TRUE)
 ```
+
+The mean is 10766.19 and the median is 10765.
 
 Aggregate the data to determine the mean number of steps per interval averaged across all days.
 
@@ -63,7 +71,9 @@ stepsdaymean<- aggregate(steps~interval, data, mean, na.rm=TRUE)
 Plot the average number of steps over all days per interval with a line graph.
 
 ```{r}
-with(stepsdaymean, plot(interval, steps, type="l"))
+with(stepsdaymean, plot(interval, steps, type="l", main = "Mean steps across all days per time interval"))
+dev.copy(png, file = "./instructions_fig/plot2.png", width = 480, height = 480, units = "px")
+dev.off()
 ```
 
 Determine the interval where the maximum, on average, number of steps were taken by sorting the aggregated dataframe descending by number of steps.
@@ -98,13 +108,15 @@ Recreate the histogram of the total steps per day and mean and median of the ste
 stepsdaytotal2<- aggregate(steps~date, data2, sum, na.rm=TRUE)
 
 with(stepsdaytotal2, hist(steps))
+dev.copy(png, file = "./instructions_fig/plot3.png", width = 480, height = 480, units = "px")
+dev.off()
 
 mean(stepsdaytotal2$steps, na.rm=TRUE)
 
 median(stepsdaytotal2$steps, na.rm=TRUE)
 ```
 
-The mean didn't change in the imputed dataset, but the median was affected by imputation
+The mean didn't change in the imputed dataset (10766.19), but the median was affected by imputation (it changed to 10766.19).
 
 Create a variable to determine which steps were taken on weekends and which on weekdays.
 
@@ -139,4 +151,6 @@ par(mfrow = c(2,1))
 par(mar=c(5,5,2,1))
 with(stepsdaymeanweekday, plot(interval, steps, type="l", main = "Steps on Weekdays"))
 with(stepsdaymeanweekend, plot(interval, steps, type="l", main = "Steps on Weekends"))
+dev.copy(png, file = "./instructions_fig/plot4.png", width = 480, height = 480, units = "px")
+dev.off()
 ```
